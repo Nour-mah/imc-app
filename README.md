@@ -16,6 +16,8 @@ L'ensemble se lance d'une seule commande et s'ouvre sur <http://localhost:8080>.
 ```bash
 git clone https://github.com/Nour-mah/imc-app.git && cd imc-app && docker compose up -d --build
 
+---
+
 ## 1. Description du système
 
 L'utilisateur saisit un poids et une taille dans une page web. L'application
