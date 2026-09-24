@@ -15,6 +15,7 @@ L'ensemble se lance d'une seule commande et s'ouvre sur <http://localhost:8080>.
 
 ```bash
 git clone https://github.com/Nour-mah/imc-app.git && cd imc-app && docker compose up -d --build
+```
 
 ---
 
