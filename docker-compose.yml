@@ -1,0 +1,58 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: imc-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: imcdb
+      MYSQL_USER: imcuser
+      MYSQL_PASSWORD: imcpass
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - imc-net
+
+  api:
+    build: ./api
+    image: imc-api:1.0
+    container_name: imc-api
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: imcuser
+      DB_PASSWORD: imcpass
+      DB_NAME: imcdb
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - imc-net
+
+  frontend:
+    build: ./frontend
+    image: imc-frontend:1.0
+    container_name: imc-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    networks:
+      - imc-net
+
+networks:
+  imc-net:
+    driver: bridge
+
+volumes:
+  mysql-data:

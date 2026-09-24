@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculateur d'IMC</title>
+</head>
+<body>
+  <h1>Calculateur d'indice de masse corporelle</h1>
+
+  <form id="formulaire">
+    <label>Poids (kg) <input type="number" id="poids" step="0.1" required></label>
+    <label>Taille (m) <input type="number" id="taille" step="0.01" required></label>
+    <button type="submit">Calculer</button>
+  </form>
+
+  <p id="resultat"></p>
+  <p id="erreur" style="color: red"></p>
+
+  <h2>Historique</h2>
+  <table id="historique" border="1"></table>
+
+  <script src="app.js"></script>
+</body>
+</html>
