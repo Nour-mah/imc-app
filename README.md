@@ -1,7 +1,9 @@
 # Application Cloud de calcul de l'IMC
 
 **Cours :** 8CLD876 — Conception et architecture des systèmes d'infonuagique
-**Travail pratique 1, Question I** — UQAC, automne 2026
+**TP1 - Question I** — UQAC, automne 2026
+
+**Auteurs :** Tudual DUPUY et Noureldin MAHMOUD
 
 Application web conteneurisée qui calcule l'indice de masse corporelle d'une
 personne, le classe selon les seuils de l'Organisation mondiale de la santé et
@@ -268,34 +270,23 @@ imc-app/
 
 ## 9. Choix techniques
 
-**`DECIMAL` plutôt que `FLOAT`** dans le schéma : les flottants introduisent
+**`DECIMAL` plutôt que `FLOAT`** dans le schéma (cf. `db/init.sql` lignes 3-5): les flottants introduisent
 des erreurs d'arrondi, inacceptables sur des mesures.
 
-**Requêtes paramétrées** (`%s`) pour toutes les insertions : protection contre
+**Requêtes paramétrées** (`%s`) pour toutes les insertions (cf. `api/app.py` ligne 78): protection contre
 l'injection SQL.
 
-**Gunicorn plutôt que le serveur de développement de Flask** dans l'image : ce
+**Gunicorn plutôt que le serveur de développement de Flask** dans l'image (cf. `api/Dockerfile` ligne 18): ce
 dernier est mono-processus et embarque un débogueur permettant l'exécution de
 code à distance.
 
-**Utilisateur non privilégié** dans l'image de l'API : un conteneur ne doit pas
+**Utilisateur non privilégié** dans l'image de l'API (cf. `api/Dockerfile` ligne 13) : un conteneur ne doit pas
 s'exécuter en `root`.
 
-**Copie des dépendances avant le code** dans le `Dockerfile` : une
+**Copie des dépendances avant le code** dans le `Dockerfile` (cf. `api/Dockerfile` ligne 8-11): une
 modification du code n'invalide pas la couche d'installation, et la
 reconstruction reste rapide.
 
-**`restart: unless-stopped`** plutôt que `always` : les services redémarrent
+**`restart: unless-stopped`** plutôt que `always` (cf. `Docker-compose.yml` ligne 8-11): les services redémarrent
 automatiquement, mais un arrêt manuel est respecté.
 
----
-
-## 10. Limites connues
-
-| Limite | Piste |
-|---|---|
-| Les identifiants de la base figurent dans `docker-compose.yml` | un fichier `.env`, ou les *secrets* Docker |
-| Une connexion est ouverte à chaque requête et non fermée en cas d'exception | un bloc `with`, ou un pool de connexions |
-| Pas de HTTPS | un certificat TLS sur nginx |
-| Pas de suite de tests automatisés | `pytest` pour la logique, un script pour les routes |
-| Interface volontairement minimale | feuille de style à ajouter |
