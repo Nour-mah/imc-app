@@ -1,0 +1,64 @@
+TESTS D'EXECUTION — Application IMC
+
+
+--- 1. ETAT DES SERVICES : docker compose ps ---
+NAME           IMAGE              COMMAND                  SERVICE    CREATED              STATUS                        PORTS
+imc-api        imc-api:1.0        "gunicorn --bind 0.0…"   api        About a minute ago   Up About a minute             5000/tcp
+imc-frontend   imc-frontend:1.0   "/docker-entrypoint.…"   frontend   About a minute ago   Up About a minute             0.0.0.0:8080->80/tcp, [::]:8080->80/tcp
+imc-mysql      mysql:8.0          "docker-entrypoint.s…"   mysql      About a minute ago   Up About a minute (healthy)   3306/tcp, 33060/tcp
+
+--- 2. CALCUL VALIDE : 70 kg / 1,75 m ---
+$ curl -s -X POST http://localhost:8080/api/imc -H "Content-Type: application/json" -d '{"poids":70,"taille":1.75}'
+{"categorie":"Corpulence normale","id":14,"imc":22.86,"poids":70.0,"taille":1.75}
+
+
+--- 3. CALCUL VALIDE : 92 kg / 1,80 m (surpoids) ---
+{"categorie":"Surpoids","id":15,"imc":28.4,"poids":92.0,"taille":1.8}
+
+
+--- 4. VALIDATION DES ENTREES (code HTTP attendu : 400) ---
+{"poids":70,"taille":0}            -> HTTP 400  {"error":"Taille doit etre superieure a 0"}
+{"poids":70}                       -> HTTP 400  {"error":"Requete invalide, poids et taille requis"}
+{"poids":"abc","taille":1.75}      -> HTTP 400  {"error":"Poids et taille doivent etre des nombres"}
+{"poids":-5,"taille":1.75}         -> HTTP 400  {"error":"Poids doit etre superieur a 0"}
+{"poids":70,"taille":175}          -> HTTP 400  {"error":"La taille doit etre en metres, pas en centimetres"}
+
+--- 5. CONTENU DE LA BASE DE DONNEES ---
+id	poids	taille	imc	categorie	date_creation
+15	92.00	1.80	28.40	Surpoids	2026-10-02 20:07:34
+14	70.00	1.75	22.86	Corpulence normale	2026-10-02 20:07:34
+13	70.00	1.75	22.86	Corpulence normale	2026-10-02 20:07:07
+12	105.00	1.78	33.14	Obesite moderee (classe I)	2026-10-02 20:06:59
+11	48.00	1.72	16.22	Insuffisance ponderale	2026-10-02 20:06:59
+10	92.00	1.80	28.40	Surpoids	2026-10-02 20:06:59
+9	70.00	1.75	22.86	Corpulence normale	2026-10-02 20:06:59
+8	80.00	1.80	24.69	Corpulence normale	2026-10-02 19:42:17
+
+--- 6. DECOUVERTE DE SERVICES : le frontend joint l'API par son nom ---
+PING api (172.21.0.3): 56 data bytes
+64 bytes from 172.21.0.3: seq=0 ttl=64 time=0.162 ms
+64 bytes from 172.21.0.3: seq=1 ttl=64 time=0.551 ms
+
+
+--- 7. PERSISTANCE DES DONNEES ---
+Avant destruction des conteneurs :
+  total = 15 | plus recente : 2026-10-02 20:07:34
+
+$ docker compose down     (supprime les 3 conteneurs)
+ Container imc-frontend Removing 
+ Container imc-frontend Removed 
+ Container imc-api Removing 
+ Container imc-api Removed 
+
+$ docker compose up -d    (les recree a partir des images)
+ Container imc-mysql Started 
+ Container imc-api Started 
+ Container imc-frontend Started 
+
+Apres recreation des conteneurs :
+  total = 15 | plus recente : 2026-10-02 20:07:34
+
+=> Les conteneurs ont ete detruits et recrees, les donnees sont intactes.
+   Elles vivent dans le volume nomme, pas dans le conteneur.
+local     imc-app-repo_mysql-data
+local     imc-app_mysql-data
